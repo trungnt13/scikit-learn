@@ -318,7 +318,7 @@ class AdaBoostClassifier(BaseWeightBoosting, ClassifierMixin):
         ``learning_rate``. There is a trade-off between ``learning_rate`` and
         ``n_estimators``.
 
-    algorithm : {'SAMME', 'SAMME.R'}, optional (default='SAMME.R')
+    algorithm : {'SAMME', 'SAMME.R', 'LOGIT'}, optional (default='SAMME.R')
         If 'SAMME.R' then use the SAMME.R real boosting algorithm.
         ``base_estimator`` must support calculation of class probabilities.
         If 'SAMME' then use the SAMME discrete boosting algorithm.
@@ -401,7 +401,7 @@ class AdaBoostClassifier(BaseWeightBoosting, ClassifierMixin):
             Returns self.
         """
         # Check that algorithm is supported
-        if self.algorithm not in ('SAMME', 'SAMME.R'):
+        if self.algorithm not in ('SAMME', 'SAMME.R', 'LOGIT'):
             raise ValueError("algorithm %s is not supported" % self.algorithm)
 
         # Fit
@@ -574,9 +574,14 @@ class AdaBoostClassifier(BaseWeightBoosting, ClassifierMixin):
         # Only boost the weights if I will fit again
         if not iboost == self.n_estimators - 1:
             # Only boost positive weights
-            sample_weight *= np.exp(estimator_weight * incorrect *
-                                    ((sample_weight > 0) |
-                                     (estimator_weight < 0)))
+            if self.algorithm == 'LOGIT':
+				sample_weight *= np.log(1 + np.exp(estimator_weight * incorrect *
+                                       ((sample_weight > 0) |
+                                        (estimator_weight < 0))))
+            else:
+            	sample_weight *= np.exp(estimator_weight * incorrect *
+            	                        ((sample_weight > 0) |
+            	                         (estimator_weight < 0)))
 
         return sample_weight, estimator_weight, estimator_error
 
