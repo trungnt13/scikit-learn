@@ -1,5 +1,30 @@
 .. currentmodule:: sklearn
 
+.. _changes_0_17:
+
+
+0.17
+====
+
+
+Changelog
+---------
+
+New features
+............
+
+Enhancements
+............
+
+   - :class:`naive_bayes.GaussianNB` now supports fitting with ``sample_weights``.
+     By `Jan Hendrik Metzen`_.
+
+Bug fixes
+.........
+
+API changes summary
+-------------------
+
 .. _changes_0_16:
 
 0.16
@@ -128,7 +153,7 @@ Enhancements
      `newton-cg` by Simon Wu.
 
    - ``DictVectorizer`` can now perform ``fit_transform`` on an iterable in a
-     single pass, when giving the option ``sort=False``. By Dan Blanchard.
+     single pass, when giving the option ``sort=False``. By `Dan Blanchard`_.
 
    - :class:`GridSearchCV` and :class:`RandomizedSearchCV` can now be
      configured to work with estimators that may fail and raise errors on
@@ -333,6 +358,9 @@ Bug fixes
       to make it consistent with the documentation and
       ``decision_function``. By Artem Sobolev.
 
+    - Fixed handling of ties in :class:`isotonic.IsotonicRegression`.
+      We now use the weighted average of targets (secondary method). By
+      `Andreas Müller`_ and `Michael Bommarito <http://bommaritollc.com/>`_.
 
 API changes summary
 -------------------
@@ -423,6 +451,9 @@ API changes summary
       :class:`linear_model.SGDRegressor`, :class:`linear_model.Perceptron`,
       :class:`linear_model.PassiveAgressiveClassivier` and
       :class:`linear_model.PassiveAgressiveRegressor` now defaults to ``True``.
+
+    - :class:`cluster.DBSCAN` now uses a deterministic initialization. The
+      `random_state` parameter is deprecated. By `Eric Schubert`_.
 
 .. _changes_0_15_2:
 
@@ -3335,3 +3366,7 @@ David Huard, Dave Morrill, Ed Schofield, Travis Oliphant, Pearu Peterson.
 .. _Kyle Beauchamp: https://github.com/kyleabeauchamp
 
 .. _Hervé Bredin: http://herve.niderb.fr/
+
+.. _Eric Schubert: https://github.com/kno10
+
+.. _Dan Blanchard: https://github.com/dan-blanchard
