@@ -3,7 +3,6 @@
 #          Denis Engemann <d.engemann@fz-juelich.de>
 #
 # License: BSD 3 clause
-import warnings
 
 import numpy as np
 from scipy import sparse
@@ -25,7 +24,7 @@ from sklearn.utils.extmath import randomized_svd
 from sklearn.utils.extmath import row_norms
 from sklearn.utils.extmath import weighted_mode
 from sklearn.utils.extmath import cartesian
-from sklearn.utils.extmath import log_logistic, logistic_sigmoid
+from sklearn.utils.extmath import log_logistic
 from sklearn.utils.extmath import fast_dot, _fast_dot
 from sklearn.utils.extmath import svd_flip
 from sklearn.utils.extmath import _batch_mean_variance_update
@@ -92,7 +91,7 @@ def test_logsumexp():
 
 
 def test_randomized_svd_low_rank():
-    """Check that extmath.randomized_svd is consistent with linalg.svd"""
+    # Check that extmath.randomized_svd is consistent with linalg.svd
     n_samples = 100
     n_features = 500
     rank = 5
@@ -152,7 +151,7 @@ def test_row_norms():
 
 
 def test_randomized_svd_low_rank_with_noise():
-    """Check that extmath.randomized_svd can handle noisy matrices"""
+    # Check that extmath.randomized_svd can handle noisy matrices
     n_samples = 100
     n_features = 500
     rank = 5
@@ -184,7 +183,7 @@ def test_randomized_svd_low_rank_with_noise():
 
 
 def test_randomized_svd_infinite_rank():
-    """Check that extmath.randomized_svd can handle noisy matrices"""
+    # Check that extmath.randomized_svd can handle noisy matrices
     n_samples = 100
     n_features = 500
     rank = 5
@@ -217,7 +216,7 @@ def test_randomized_svd_infinite_rank():
 
 
 def test_randomized_svd_transpose_consistency():
-    """Check that transposing the design matrix has limit impact"""
+    # Check that transposing the design matrix has limit impact
     n_samples = 100
     n_features = 500
     rank = 4
@@ -250,7 +249,7 @@ def test_randomized_svd_transpose_consistency():
 
 
 def test_svd_flip():
-    """Check that svd_flip works in both situations, and reconstructs input."""
+    # Check that svd_flip works in both situations, and reconstructs input.
     rs = np.random.RandomState(1999)
     n_samples = 20
     n_features = 10
@@ -287,7 +286,7 @@ def test_randomized_svd_sign_flip():
 
 
 def test_cartesian():
-    """Check if cartesian product delivers the right results"""
+    # Check if cartesian product delivers the right results
 
     axes = (np.array([1, 2, 3]), np.array([4, 5]), np.array([6, 7]))
 
@@ -313,13 +312,11 @@ def test_cartesian():
 
 
 def test_logistic_sigmoid():
-    """Check correctness and robustness of logistic sigmoid implementation"""
+    # Check correctness and robustness of logistic sigmoid implementation
     naive_logistic = lambda x: 1 / (1 + np.exp(-x))
     naive_log_logistic = lambda x: np.log(naive_logistic(x))
 
     x = np.linspace(-2, 2, 50)
-    with warnings.catch_warnings(record=True):
-        assert_array_almost_equal(logistic_sigmoid(x), naive_logistic(x))
     assert_array_almost_equal(log_logistic(x), naive_log_logistic(x))
 
     extreme_x = np.array([-100., 100.])
@@ -327,7 +324,7 @@ def test_logistic_sigmoid():
 
 
 def test_fast_dot():
-    """Check fast dot blas wrapper function"""
+    # Check fast dot blas wrapper function
     if fast_dot is np.dot:
         return
 
@@ -405,7 +402,7 @@ def test_fast_dot():
 
 
 def test_incremental_variance_update_formulas():
-    """Test Youngs and Cramer incremental variance formulas."""
+    # Test Youngs and Cramer incremental variance formulas.
     # Doggie data from http://www.mathsisfun.com/data/standard-deviation.html
     A = np.array([[600, 470, 170, 430, 300],
                   [600, 470, 170, 430, 300],
@@ -426,7 +423,7 @@ def test_incremental_variance_update_formulas():
 
 
 def test_incremental_variance_ddof():
-    """Test that degrees of freedom parameter for calculations are correct."""
+    # Test that degrees of freedom parameter for calculations are correct.
     rng = np.random.RandomState(1999)
     X = rng.randn(50, 10)
     n_samples, n_features = X.shape
@@ -444,9 +441,9 @@ def test_incremental_variance_ddof():
                 incremental_count = batch.shape[0]
                 sample_count = batch.shape[0]
             else:
-                result = _batch_mean_variance_update(batch, incremental_means,
-                                                    incremental_variances,
-                                                    sample_count)
+                result = _batch_mean_variance_update(
+                    batch, incremental_means, incremental_variances,
+                    sample_count)
                 (incremental_means, incremental_variances,
                  incremental_count) = result
                 sample_count += batch.shape[0]
