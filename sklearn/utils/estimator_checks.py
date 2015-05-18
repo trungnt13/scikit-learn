@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import types
 import warnings
 import sys
 import traceback
@@ -12,12 +13,13 @@ from scipy import sparse
 import struct
 
 from sklearn.externals.six.moves import zip
-from sklearn.externals.joblib import hash
+from sklearn.externals.joblib import hash, Memory
 from sklearn.utils.testing import assert_raises
 from sklearn.utils.testing import assert_raises_regex
 from sklearn.utils.testing import assert_raise_message
 from sklearn.utils.testing import assert_equal
 from sklearn.utils.testing import assert_true
+from sklearn.utils.testing import assert_in
 from sklearn.utils.testing import assert_array_equal
 from sklearn.utils.testing import assert_array_almost_equal
 from sklearn.utils.testing import assert_warns_message
@@ -52,6 +54,7 @@ def _yield_non_meta_checks(name, Estimator):
     yield check_estimators_dtypes
     yield check_fit_score_takes_y
     yield check_dtype_object
+    yield check_estimators_fit_returns_self
 
     # Check that all estimator yield informative messages when
     # trained on empty datasets
@@ -777,6 +780,21 @@ def check_classifiers_train(name, Classifier):
             assert_raises(ValueError, classifier.predict_proba, X.T)
 
 
+def check_estimators_fit_returns_self(name, Estimator):
+    """Check if self is returned when calling fit"""
+    X, y = make_blobs(random_state=0, n_samples=9, n_features=4)
+    y = multioutput_estimator_convert_y_2d(name, y)
+    # some want non-negative input
+    X -= X.min()
+
+    estimator = Estimator()
+
+    set_fast_parameters(estimator)
+    set_random_state(estimator)
+
+    assert_true(estimator.fit(X, y) is estimator)
+
+
 def check_estimators_unfitted(name, Estimator):
     """Check if NotFittedError is raised when calling predict and related
     functions"""
@@ -1096,11 +1114,6 @@ def check_estimators_overwrite_params(name, Estimator):
         # catch deprecation warnings
         estimator = Estimator()
 
-    if name == 'MiniBatchDictLearning' or name == 'MiniBatchSparsePCA':
-        # FIXME
-        # for MiniBatchDictLearning and MiniBatchSparsePCA
-        estimator.batch_size = 1
-
     set_fast_parameters(estimator)
     set_random_state(estimator)
 
@@ -1202,7 +1215,7 @@ def check_parameters_default_constructible(name, Estimator):
         # test __repr__
         repr(estimator)
         # test that set_params returns self
-        assert_true(isinstance(estimator.set_params(), Estimator))
+        assert_true(estimator.set_params() is estimator)
 
         # test if init does nothing but set parameters
         # this is important for grid_search etc.
@@ -1230,6 +1243,8 @@ def check_parameters_default_constructible(name, Estimator):
         else:
             return
         for arg, default in zip(args, defaults):
+            assert_in(type(default), [str, int, float, bool, tuple, type(None),
+                                      np.float64, types.FunctionType, Memory])
             if arg not in params.keys():
                 # deprecated parameter, not in get_params
                 assert_true(default is None)
