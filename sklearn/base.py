@@ -89,7 +89,12 @@ def clone(estimator, safe=True):
                     and param1.shape == param2.shape
                 )
         else:
-            equality_test = new_object_params[name] == params_set[name]
+            new_obj_val = new_object_params[name]
+            params_set_val = params_set[name]
+            # The following construct is required to check equality on special
+            # singletons such as np.nan that are not equal to them-selves:
+            equality_test = (new_obj_val == params_set_val or
+                             new_obj_val is params_set_val)
         if not equality_test:
             raise RuntimeError('Cannot clone object %s, as the constructor '
                                'does not seem to set parameter %s' %
