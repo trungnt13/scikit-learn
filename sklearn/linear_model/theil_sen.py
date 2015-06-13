@@ -207,6 +207,8 @@ class TheilSenRegressor(LinearModel, RegressorMixin):
     reached, the subsets are chosen randomly. In a final step, the spatial
     median (or L1 median) is calculated of all least square solutions.
 
+    Read more in the :ref:`User Guide <theil_sen_regression>`.
+
     Parameters
     ----------
     fit_intercept : boolean, optional, default True
@@ -253,16 +255,16 @@ class TheilSenRegressor(LinearModel, RegressorMixin):
 
     Attributes
     ----------
-    `coef_` : array, shape = (n_features)
+    coef_ : array, shape = (n_features)
         Coefficients of the regression model (median of distribution).
 
-    `intercept_` : float
+    intercept_ : float
         Estimated intercept of regression model.
 
-    `breakdown_` : float
+    breakdown_ : float
         Approximated breakdown point.
 
-    `n_iter_` : int
+    n_iter_ : int
         Number of iterations needed for the spatial median.
 
     n_subpopulation_ : int

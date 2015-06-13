@@ -2,6 +2,9 @@
 
 .. _changes_0_17:
 
+===============
+Release history
+===============
 
 0.17
 ====
@@ -20,6 +23,11 @@ New features
    - The new class :class:`preprocessing.RobustScaler` provides an
      alternative to :class:`preprocessing.StandardScaler` for feature-wise
      centering and range normalization that is robust to outliers. By `Thomas Unterthiner`_.
+
+   - The new class :class:`preprocessing.MaxAbsScaler` provides an
+     alternative to :class:`preprocessing.MinMaxScaler` for feature-wise
+     range normalization when the data is already centered or sparse.
+     By `Thomas Unterthiner`_.
 
 Enhancements
 ............
@@ -56,6 +64,27 @@ Enhancements
      :class:`linear_model.LogisticRegression`, by avoiding loss computation.
      By `Mathieu Blondel`_ and `Tom Dupre la Tour`_.
 
+   - The ``class_weight="auto"`` heuristic in classifiers supporting 
+     ``class_weight`` was deprecated and replaced by the ``class_weight="balanced"``
+     option, which has a simpler forumlar and interpretation.
+     By Hanna Wallach and `Andreas Müller`_.
+
+   - Added backlinks from the API reference pages to the user guide. By
+     `Andreas Müller`_.
+
+   - The ``labels`` parameter to :func:`sklearn.metrics.f1_score`,
+     :func:`sklearn.metrics.fbeta_score`,
+     :func:`sklearn.metrics.recall_score` and
+     :func:`sklearn.metrics.precision_score` has been extended.
+     It is now possible to ignore one or more labels, such as where
+     a multiclass problem has a majority class to ignore. By `Joel Nothman`_.
+
+   - Add ``sample_weight`` support to :class:`linear_model.RidgeClassifier`.
+     By `Trevor Stephens`_.
+
+   - Provide an option for sparse output from
+     :func:`sklearn.metrics.pairwise.cosine_similarity`. By `Jaidev Deshpande`_.
+
 Bug fixes
 .........
 
@@ -74,6 +103,11 @@ API changes summary
     - :class:`tree.DecisionTreeClassifier` now exposes an ``apply`` method
       for retrieving the leaf indices samples are predicted as. By
       `Daniel Galvez`_ and `Gilles Louppe`_.
+
+    - :class:`svm.SVC`` and :class:`svm.NuSVC` now have an ``decision_function_shape``
+      parameter to make their decision function of shape ``(n_samples, n_classes)``
+      by setting ``decision_function_shape='ovr'``. This will be the default behavior
+      starting in 0.19. By `Andreas Müller`_.
 
 .. _changes_0_1_16:
 
@@ -339,6 +373,7 @@ Enhancements
    - :class:`svm.SVC` fitted on sparse input now implements ``decision_function``.
      By `Rob Zinkov`_ and `Andreas Müller`_.
 
+
 Documentation improvements
 ..........................
 
@@ -462,7 +497,7 @@ Bug fixes
       in GMM. By `Alexis Mignon`_.
 
     - Fixed a error in the computation of conditional probabilities in
-      :class:`naive_bayes.BernoulliNB`. By `Hanna Wallach`_.
+      :class:`naive_bayes.BernoulliNB`. By Hanna Wallach.
 
     - Make the method ``radius_neighbors`` of
       :class:`neighbors.NearestNeighbors` return the samples lying on the

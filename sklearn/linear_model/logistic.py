@@ -28,7 +28,7 @@ from ..utils.validation import (as_float_array, DataConversionWarning,
                                 check_X_y)
 from ..utils.fixes import expit
 from ..externals.joblib import Parallel, delayed
-from ..cross_validation import _check_cv
+from ..cross_validation import check_cv
 from ..externals import six
 from ..metrics import SCORERS
 
@@ -427,6 +427,8 @@ def logistic_regression_path(X, y, pos_class=None, Cs=10, fit_intercept=True,
     to speed up computations along the set of solutions, making it faster
     than sequentially calling LogisticRegression for the different parameters.
 
+    Read more in the :ref:`User Guide <logistic_regression>`.
+
     Parameters
     ----------
     X : array-like or sparse matrix, shape (n_samples, n_features)
@@ -473,11 +475,13 @@ def logistic_regression_path(X, y, pos_class=None, Cs=10, fit_intercept=True,
         is called repeatedly with the same data, as y is modified
         along the path.
 
-    class_weight : {dict, 'auto'}, optional
-        Over-/undersamples the samples of each class according to the given
-        weights. If not given, all classes are supposed to have weight one.
-        The 'auto' mode selects weights inversely proportional to class
-        frequencies in the training set.
+    class_weight : dict or 'balanced', optional
+        Weights associated with classes in the form ``{class_label: weight}``.
+        If not given, all classes are supposed to have weight one.
+
+        The "balanced" mode uses the values of y to automatically adjust
+        weights inversely proportional to class frequencies in the input data
+        as ``n_samples / (n_classes * np.bincount(y))``
 
     dual : bool
         Dual or primal formulation. Dual formulation is only implemented for
@@ -599,8 +603,7 @@ def logistic_regression_path(X, y, pos_class=None, Cs=10, fit_intercept=True,
             if coef.size not in (n_features, w0.size):
                 raise ValueError(
                     'Initialization coef is of shape %d, expected shape '
-                    '%d or %d' % (coef.size, n_features, w0.size)
-                    )
+                    '%d or %d' % (coef.size, n_features, w0.size))
             w0[:coef.size] = coef
         else:
             # For binary problems coef.shape[0] should be 1, otherwise it
@@ -615,9 +618,7 @@ def logistic_regression_path(X, y, pos_class=None, Cs=10, fit_intercept=True,
                     'Initialization coef is of shape (%d, %d), expected '
                     'shape (%d, %d) or (%d, %d)' % (
                         coef.shape[0], coef.shape[1], classes.size,
-                        n_features, classes.size, n_features + 1
-                        )
-                    )
+                        n_features, classes.size, n_features + 1))
             w0[:, :coef.shape[1]] = coef
 
     if multi_class == 'multinomial':
@@ -647,15 +648,13 @@ def logistic_regression_path(X, y, pos_class=None, Cs=10, fit_intercept=True,
                 w0, loss, info = optimize.fmin_l_bfgs_b(
                     func, w0, fprime=None,
                     args=(X, target, 1. / C, sample_weight),
-                    iprint=(verbose > 0) - 1, pgtol=tol, maxiter=max_iter
-                    )
+                    iprint=(verbose > 0) - 1, pgtol=tol, maxiter=max_iter)
             except TypeError:
                 # old scipy doesn't have maxiter
                 w0, loss, info = optimize.fmin_l_bfgs_b(
                     func, w0, fprime=None,
                     args=(X, target, 1. / C, sample_weight),
-                    iprint=(verbose > 0) - 1, pgtol=tol
-                    )
+                    iprint=(verbose > 0) - 1, pgtol=tol)
             if info["warnflag"] == 1 and verbose > 0:
                 warnings.warn("lbfgs failed to converge. Increase the number "
                               "of iterations.")
@@ -666,8 +665,7 @@ def logistic_regression_path(X, y, pos_class=None, Cs=10, fit_intercept=True,
         elif solver == 'liblinear':
             coef_, intercept_, _, = _fit_liblinear(
                 X, y, C, fit_intercept, intercept_scaling, class_weight,
-                penalty, dual, verbose, max_iter, tol, random_state
-                )
+                penalty, dual, verbose, max_iter, tol, random_state)
             if fit_intercept:
                 w0 = np.concatenate([coef_.ravel(), intercept_])
             else:
@@ -734,11 +732,13 @@ def _log_reg_scoring_path(X, y, train, test, pos_class=None, Cs=10,
     tol : float
         Tolerance for stopping criteria.
 
-    class_weight : {dict, 'auto'}, optional
-        Over-/undersamples the samples of each class according to the given
-        weights. If not given, all classes are supposed to have weight one.
-        The 'auto' mode selects weights inversely proportional to class
-        frequencies in the training set.
+    class_weight : dict or 'balanced', optional
+        Weights associated with classes in the form ``{class_label: weight}``.
+        If not given, all classes are supposed to have weight one.
+
+        The "balanced" mode uses the values of y to automatically adjust
+        weights inversely proportional to class frequencies in the input data
+        as ``n_samples / (n_classes * np.bincount(y))``
 
     verbose : int
         For the liblinear and lbfgs solvers set verbose to any positive
@@ -871,6 +871,8 @@ class LogisticRegression(BaseEstimator, LinearClassifierMixin,
     formulation. The liblinear solver supports both L1 and L2 regularization,
     with a dual formulation only for the L2 penalty.
 
+    Read more in the :ref:`User Guide <logistic_regression>`.
+
     Parameters
     ----------
     penalty : str, 'l1' or 'l2'
@@ -903,11 +905,13 @@ class LogisticRegression(BaseEstimator, LinearClassifierMixin,
         To lessen the effect of regularization on synthetic feature weight
         (and therefore on the intercept) intercept_scaling has to be increased.
 
-    class_weight : {dict, 'auto'}, optional
-        Over-/undersamples the samples of each class according to the given
-        weights. If not given, all classes are supposed to have weight one.
-        The 'auto' mode selects weights inversely proportional to class
-        frequencies in the training set.
+    class_weight : dict or 'balanced', optional
+        Weights associated with classes in the form ``{class_label: weight}``.
+        If not given, all classes are supposed to have weight one.
+
+        The "balanced" mode uses the values of y to automatically adjust
+        weights inversely proportional to class frequencies in the input data
+        as ``n_samples / (n_classes * np.bincount(y))``
 
     max_iter : int
         Useful only for the newton-cg and lbfgs solvers. Maximum number of
@@ -1036,8 +1040,7 @@ class LogisticRegression(BaseEstimator, LinearClassifierMixin,
             self.coef_, self.intercept_, self.n_iter_ = _fit_liblinear(
                 X, y, self.C, self.fit_intercept, self.intercept_scaling,
                 self.class_weight, self.penalty, self.dual, self.verbose,
-                self.max_iter, self.tol, self.random_state
-                )
+                self.max_iter, self.tol, self.random_state)
             return self
 
         n_classes = len(self.classes_)
@@ -1137,6 +1140,8 @@ class LogisticRegressionCV(LogisticRegression, BaseEstimator,
     using the best scores got by doing a one-vs-rest in parallel across all
     folds and classes. Hence this is not the true multinomial loss.
 
+    Read more in the :ref:`User Guide <logistic_regression>`.
+
     Parameters
     ----------
     Cs : list of floats | int
@@ -1150,11 +1155,13 @@ class LogisticRegressionCV(LogisticRegression, BaseEstimator,
         Specifies if a constant (a.k.a. bias or intercept) should be
         added the decision function.
 
-    class_weight : {dict, 'auto'}, optional
-        Over-/undersamples the samples of each class according to the given
-        weights. If not given, all classes are supposed to have weight one.
-        The 'auto' mode selects weights inversely proportional to class
-        frequencies in the training set.
+    class_weight : dict or 'balanced', optional
+        Weights associated with classes in the form ``{class_label: weight}``.
+        If not given, all classes are supposed to have weight one.
+
+        The "balanced" mode uses the values of y to automatically adjust
+        weights inversely proportional to class frequencies in the input data
+        as ``n_samples / (n_classes * np.bincount(y))``
 
     cv : integer or cross-validation generator
         The default cross-validation generator used is Stratified K-Folds.
@@ -1185,11 +1192,13 @@ class LogisticRegressionCV(LogisticRegression, BaseEstimator,
     max_iter : int, optional
         Maximum number of iterations of the optimization algorithm.
 
-    class_weight : {dict, 'auto'}, optional
-        Over-/undersamples the samples of each class according to the given
-        weights. If not given, all classes are supposed to have weight one.
-        The 'auto' mode selects weights inversely proportional to class
-        frequencies in the training set.
+    class_weight : dict or 'balanced', optional
+        Weights associated with classes in the form ``{class_label: weight}``.
+        If not given, all classes are supposed to have weight one.
+
+        The "balanced" mode uses the values of y to automatically adjust
+        weights inversely proportional to class frequencies in the input data
+        as ``n_samples / (n_classes * np.bincount(y))``
 
     n_jobs : int, optional
         Number of CPU cores used during the cross-validation loop. If given
@@ -1330,14 +1339,13 @@ class LogisticRegressionCV(LogisticRegression, BaseEstimator,
                 "A column-vector y was passed when a 1d array was"
                 " expected. Please change the shape of y to "
                 "(n_samples, ), for example using ravel().",
-                DataConversionWarning
-                )
+                DataConversionWarning)
             y = np.ravel(y)
 
         check_consistent_length(X, y)
 
         # init cross-validation generator
-        cv = _check_cv(self.cv, X, y, classifier=True)
+        cv = check_cv(self.cv, X, y, classifier=True)
         folds = list(cv)
 
         self._enc = LabelEncoder()
@@ -1363,9 +1371,9 @@ class LogisticRegressionCV(LogisticRegression, BaseEstimator,
             iter_labels = [None]
 
         if self.class_weight and not(isinstance(self.class_weight, dict) or
-                                     self.class_weight == 'auto'):
+                                     self.class_weight in ['balanced', 'auto']):
             raise ValueError("class_weight provided should be a "
-                             "dict or 'auto'")
+                             "dict or 'balanced'")
 
         path_func = delayed(_log_reg_scoring_path)
 
@@ -1446,10 +1454,8 @@ class LogisticRegressionCV(LogisticRegression, BaseEstimator,
                 # Take the best scores across every fold and the average of all
                 # coefficients corresponding to the best scores.
                 best_indices = np.argmax(scores, axis=1)
-                w = np.mean([
-                    coefs_paths[i][best_indices[i]]
-                    for i in range(len(folds))
-                    ], axis=0)
+                w = np.mean([coefs_paths[i][best_indices[i]]
+                             for i in range(len(folds))], axis=0)
                 self.C_.append(np.mean(self.Cs_[best_indices]))
 
             if self.multi_class == 'multinomial':
