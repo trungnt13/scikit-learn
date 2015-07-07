@@ -414,10 +414,12 @@ class ForestClassifier(six.with_metaclass(ABCMeta, BaseForest,
         self.classes_ = []
         self.n_classes_ = []
 
+        y_store_unique_indices = np.zeros(y.shape, dtype=np.int)
         for k in range(self.n_outputs_):
-            classes_k, y[:, k] = np.unique(y[:, k], return_inverse=True)
+            classes_k, y_store_unique_indices[:, k] = np.unique(y[:, k], return_inverse=True)
             self.classes_.append(classes_k)
             self.n_classes_.append(classes_k.shape[0])
+        y = y_store_unique_indices
 
         if self.class_weight is not None:
             valid_presets = ('auto', 'balanced', 'balanced_subsample', 'subsample', 'auto')
@@ -692,6 +694,9 @@ class RandomForestClassifier(ForestClassifier):
     A random forest is a meta estimator that fits a number of decision tree
     classifiers on various sub-samples of the dataset and use averaging to
     improve the predictive accuracy and control over-fitting.
+    The sub-sample size is always the same as the original
+    input sample size but the samples are drawn with replacement if
+    `bootstrap=True` (default).
 
     Read more in the :ref:`User Guide <forest>`.
 
@@ -713,7 +718,7 @@ class RandomForestClassifier(ForestClassifier):
           `int(max_features * n_features)` features are considered at each
           split.
         - If "auto", then `max_features=sqrt(n_features)`.
-        - If "sqrt", then `max_features=sqrt(n_features)`.
+        - If "sqrt", then `max_features=sqrt(n_features)` (same as "auto").
         - If "log2", then `max_features=log2(n_features)`.
         - If None, then `max_features=n_features`.
 
@@ -881,6 +886,9 @@ class RandomForestRegressor(ForestRegressor):
     A random forest is a meta estimator that fits a number of classifying
     decision trees on various sub-samples of the dataset and use averaging
     to improve the predictive accuracy and control over-fitting.
+    The sub-sample size is always the same as the original
+    input sample size but the samples are drawn with replacement if
+    `bootstrap=True` (default).
 
     Read more in the :ref:`User Guide <forest>`.
 
